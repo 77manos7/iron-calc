@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power Cost Dashboard</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #f1f5f9;
+      --accent: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --bg-main: #f8fafc;
+      --card-bg: #ffffff;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 3rem 2rem;
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 1.1rem;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    input, select, button {
+      padding: 0.75rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
+    }
+
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+
+    .btn-success {
+      background: var(--accent);
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-sm {
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+    }
+
+    .mode-selector {
+      display: flex;
+      background: var(--secondary);
+      border-radius: 8px;
+      padding: 4px;
+      margin-bottom: 2rem;
+    }
+
+    .mode-option {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      text-align: center;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .mode-option.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .appliance-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background: var(--card-bg);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .appliance-table th {
+      background: var(--secondary);
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .appliance-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .appliance-table tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    .appliance-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .total-row {
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    .total-row td {
+      border-bottom: none;
+    }
+
+    .delete-btn {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: background 0.2s ease;
+    }
+
+    .delete-btn:hover {
+      background: #dc2626;
+    }
+
+    .preset-appliances {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .preset-item {
+      background: var(--secondary);
+      padding: 0.75rem;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+    }
+
+    .preset-item:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .preset-name {
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+
+    .preset-power {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    .preset-item:hover .preset-power {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .settings-card {
+      grid-column: 1 / -1;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .header h1 {
+        font-size: 2rem;
+      }
+      
+      .container {
+        padding: 1rem;
+      }
+    }
+
+    .icon {
+      width: 20px;
+      height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💡 Power Cost Dashboard</h1>
+      <p>Track and calculate your electricity consumption with precision</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="totalAppliances">0</div>
+        <div class="stat-label">Appliances</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalKWhStat">0 kWh</div>
+        <div class="stat-label">Monthly Usage</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalVariableCost">€0</div>
+        <div class="stat-label">Variable Cost</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalCostStat">€0</div>
+        <div class="stat-label">Total Monthly Cost</div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="card">
+        <h2 class="card-title">
+          <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+          </svg>
+          Add Appliance
+        </h2>
+
+        <div class="mode-selector">
+          <div class="mode-option active" data-mode="calc">Calculate Usage</div>
+          <div class="mode-option" data-mode="direct">Direct kWh</div>
+          <div class="mode-option" data-mode="preset">Quick Add</div>
+        </div>
+
+        <div id="calc-inputs">
+          <div class="form-group">
+            <label>Appliance Name</label>
+            <input type="text" id="name" placeholder="e.g., Washing Machine">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Power (Watts)</label>
+              <input type="number" id="watts" placeholder="1500" step="any">
+            </div>
+            <div class="form-group">
+              <label>Usage Period</label>
+              <select id="usagePeriod">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="usageInputs">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Hours per Day</label>
+                <input type="number" id="hoursPerDay" placeholder="8" step="any">
+              </div>
+              <div class="form-group">
+                <label>Days per Week (optional)</label>
+                <input type="number" id="daysPerWeek" placeholder="7" step="any" max="7">
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-success" onclick="addAppliance('calc')">
+            <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+            </svg>
+            Add Appliance
+          </button>
+        </div>
+
+        <div id="direct-inputs" style="display: none;">
+          <div class="form-group">
+            <label>Appliance Name</label>
+            <input type="text" id="nameDirect" placeholder="e.g., Air Conditioner">
+          </div>
+          <div class="form-group">
+            <label>Monthly kWh Usage</label>
+            <input type="number" id="kwhDirect" placeholder="150" step="any">
+          </div>
+          <button class="btn btn-success" onclick="addAppliance('direct')">
+            <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+            </svg>
+            Add Appliance
+          </button>
+        </div>
+
+        <div id="preset-inputs" style="display: none;">
+          <div class="form-group">
+            <label>Quick Add Common Appliances</label>
+            <div class="preset-appliances" id="presetAppliances">
+              <!-- Preset appliances will be populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">
+          <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 102 0V3h4v1a1 1 0 102 0V3a2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+          </svg>
+          Appliance List
+        </h2>
+
+        <div id="applianceList">
+          <div class="empty-state">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12z" clip-rule="evenodd"/>
+            </svg>
+            <p>No appliances added yet. Add your first appliance to get started!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card settings-card">
+      <h2 class="card-title">
+        <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+        </svg>
+        Billing Settings
+      </h2>
+
+      <div class="settings-grid">
+        <div class="form-group">
+          <label>Fixed Monthly Cost (Pagia, Dimos, ERT) (€)</label>
+          <input type="number" id="fixedCost" value="30.50" step="0.01" onchange="updateSettings()">
+        </div>
+        <div class="form-group">
+          <label>Rate per kWh (Including variable charges) (€)</label>
+          <input type="number" id="kwhRate" value="0.155" step="0.001" onchange="updateSettings()">
+        </div>
+        <div class="form-group">
+          <label>Currency Symbol</label>
+          <input type="text" id="currency" value="€" maxlength="3" onchange="updateSettings()">
+        </div>
+        <div class="form-group">
+          <label>Data Management</label>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+            <button class="btn btn-sm" onclick="exportData()">Export Data</button>
+            <button class="btn btn-danger btn-sm" onclick="clearAllData()">Clear All</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration and state
+    let settings = {
+      fixedMonthlyCost: 30.50,
+      marginalRatePerKWh: 0.155,
+      currency: '€'
+    };
+
+    let appliances = [];
+    let currentMode = 'calc';
+
+    // Preset appliances database
+    const presetAppliances = [
+      { name: 'LED Light', watts: 10, hours: 6 },
+      { name: 'Incandescent Bulb', watts: 60, hours: 6 },
+      { name: 'Desktop Computer', watts: 300, hours: 8 },
+      { name: 'Laptop', watts: 65, hours: 8 },
+      { name: 'TV (LCD 32")', watts: 150, hours: 5 },
+      { name: 'TV (OLED 55")', watts: 200, hours: 5 },
+      { name: 'Refrigerator', watts: 150, hours: 24 },
+      { name: 'Washing Machine', watts: 1500, hours: 1 },
+      { name: 'Dryer', watts: 3000, hours: 1 },
+      { name: 'Dishwasher', watts: 1800, hours: 1.5 },
+      { name: 'Microwave', watts: 1200, hours: 0.5 },
+      { name: 'Air Conditioner', watts: 2500, hours: 8 },
+      { name: 'Space Heater', watts: 1500, hours: 6 },
+      { name: 'Hair Dryer', watts: 1500, hours: 0.25 },
+      { name: 'Coffee Maker', watts: 900, hours: 0.5 },
+      { name: 'Vacuum Cleaner', watts: 1400, hours: 0.5 },
+      { name: 'Gaming Console', watts: 150, hours: 4 },
+      { name: 'Router/Modem', watts: 20, hours: 24 }
+    ];
+
+    // Initialize app
+    function init() {
+      loadData();
+      setupEventListeners();
+      populatePresets();
+      updateDisplay();
+      updateUsageInputs();
+    }
+
+    // Data persistence functions
+    function saveData() {
+      try {
+        const data = {
+          appliances: appliances,
+          settings: settings
+        };
+        // Note: localStorage not available in Claude artifacts
+        console.log('Would save to localStorage:', data);
+      } catch (e) {
+        console.warn('Storage not available');
+      }
+    }
+
+    function loadData() {
+      try {
+        // Note: localStorage not available in Claude artifacts
+        // In a real environment, this would load from localStorage
+        console.log('Would load from localStorage');
+      } catch (e) {
+        console.warn('Storage not available');
+      }
+    }
+
+    // Event listeners
+    function setupEventListeners() {
+      // Mode switching
+      document.querySelectorAll('.mode-option').forEach(option => {
+        option.addEventListener('click', function() {
+          switchMode(this.dataset.mode);
+        });
+      });
+
+      // Usage period change
+      document.getElementById('usagePeriod').addEventListener('change', updateUsageInputs);
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+      
+      // Update UI
+      document.querySelectorAll('.mode-option').forEach(opt => opt.classList.remove('active'));
+      document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+      
+      // Show/hide inputs
+      document.getElementById('calc-inputs').style.display = mode === 'calc' ? 'block' : 'none';
+      document.getElementById('direct-inputs').style.display = mode === 'direct' ? 'block' : 'none';
+      document.getElementById('preset-inputs').style.display = mode === 'preset' ? 'block' : 'none';
+    }
+
+    function updateUsageInputs() {
+      const period = document.getElementById('usagePeriod').value;
+      const container = document.getElementById('usageInputs');
+      
+      let html = '';
+      switch (period) {
+        case 'daily':
+          html = `
+            <div class="form-row">
+              <div class="form-group">
+                <label>Hours per Day</label>
+                <input type="number" id="hoursPerDay" placeholder="8" step="any">
+              </div>
+              <div class="form-group">
+                <label>Days per Week (optional)</label>
+                <input type="number" id="daysPerWeek" placeholder="7" step="any" max="7">
+              </div>
+            </div>
+          `;
+          break;
+        case 'weekly':
+          html = `
+            <div class="form-row">
+              <div class="form-group">
+                <label>Hours per Week</label>
+                <input type="number" id="hoursPerWeek" placeholder="56" step="any">
+              </div>
+            </div>
+          `;
+          break;
+        case 'monthly':
+          html = `
+            <div class="form-row">
+              <div class="form-group">
+                <label>Hours per Month</label>
+                <input type="number" id="hoursPerMonth" placeholder="240" step="any">
+              </div>
+            </div>
+          `;
+          break;
+        case 'custom':
+          html = `
+            <div class="form-row">
+              <div class="form-group">
+                <label>Hours per Day</label>
+                <input type="number" id="hoursPerDay" placeholder="8" step="any">
+              </div>
+              <div class="form-group">
+                <label>Days per Month</label>
+                <input type="number" id="daysPerMonth" placeholder="30" step="any">
+              </div>
+            </div>
+          `;
+          break;
+      }
+      container.innerHTML = html;
+    }
+
+    function populatePresets() {
+      const container = document.getElementById('presetAppliances');
+      container.innerHTML = presetAppliances.map(preset => `
+        <div class="preset-item" onclick="addPresetAppliance('${preset.name}', ${preset.watts}, ${preset.hours})">
+          <div class="preset-name">${preset.name}</div>
+          <div class="preset-power">${preset.watts}W • ${preset.hours}h/day</div>
+        </div>
+      `).join('');
+    }
+
+    function addPresetAppliance(name, watts, hours) {
+      appliances.push({
+        name: name,
+        watts: watts,
+        hoursPerDay: hours,
+        usagePeriod: 'daily'
+      });
+      saveData();
+      updateDisplay();
+    }
+
+    function addAppliance(mode) {
+      let newAppliance = {};
+      
+      if (mode === 'calc') {
+        const name = document.getElementById('name').value;
+        const watts = parseFloat(document.getElementById('watts').value);
+        const period = document.getElementById('usagePeriod').value;
+        
+        if (!name || isNaN(watts)) {
+          alert('Please fill in Name and Watts');
+          return;
+        }
+        
+        newAppliance = { name, watts, usagePeriod: period };
+        
+        // Get usage data based on period
+        switch (period) {
+          case 'daily':
+            const hoursPerDay = parseFloat(document.getElementById('hoursPerDay')?.value || 0);
+            const daysPerWeek = parseFloat(document.getElementById('daysPerWeek')?.value || 0);
+            if (isNaN(hoursPerDay)) {
+              alert('Please fill in hours per day');
+              return;
+            }
+            newAppliance.hoursPerDay = hoursPerDay;
+            if (daysPerWeek > 0) newAppliance.daysPerWeek = daysPerWeek;
+            break;
+          case 'weekly':
+            const hoursPerWeek = parseFloat(document.getElementById('hoursPerWeek')?.value || 0);
+            if (isNaN(hoursPerWeek)) {
+              alert('Please fill in hours per week');
+              return;
+            }
+            newAppliance.hoursPerWeek = hoursPerWeek;
+            break;
+          case 'monthly':
+            const hoursPerMonth = parseFloat(document.getElementById('hoursPerMonth')?.value || 0);
+            if (isNaN(hoursPerMonth)) {
+              alert('Please fill in hours per month');
+              return;
+            }
+            newAppliance.hoursPerMonth = hoursPerMonth;
+            break;
+          case 'custom':
+            const hoursPerDayCustom = parseFloat(document.getElementById('hoursPerDay')?.value || 0);
+            const daysPerMonth = parseFloat(document.getElementById('daysPerMonth')?.value || 0);
+            if (isNaN(hoursPerDayCustom) || isNaN(daysPerMonth)) {
+              alert('Please fill in hours per day and days per month');
+              return;
+            }
+            newAppliance.hoursPerDay = hoursPerDayCustom;
+            newAppliance.daysPerMonth = daysPerMonth;
+            break;
+        }
+        
+        // Clear inputs
+        document.getElementById('name').value = '';
+        document.getElementById('watts').value = '';
+        document.querySelectorAll('#usageInputs input').forEach(input => input.value = '');
+        
+      } else if (mode === 'direct') {
+        const name = document.getElementById('nameDirect').value;
+        const kWh = parseFloat(document.getElementById('kwhDirect').value);
+        
+        if (!name || isNaN(kWh)) {
+          alert('Please fill in Name and kWh/month');
+          return;
+        }
+        
+        newAppliance = { name, directKWh: kWh };
+        
+        // Clear inputs
+        document.getElementById('nameDirect').value = '';
+        document.getElementById('kwhDirect').value = '';
+      }
+      
+      appliances.push(newAppliance);
+      saveData();
+      updateDisplay();
+    }
+
+    function removeAppliance(index) {
+      appliances.splice(index, 1);
+      saveData();
+      updateDisplay();
+    }
+
+    function calculateKWh(app) {
+      if (app.directKWh !== undefined) return app.directKWh;
+      
+      let totalHours = 0;
+      
+      switch (app.usagePeriod) {
+        case 'daily':
+          if (app.daysPerWeek > 0) {
+            totalHours = app.hoursPerDay * (app.daysPerWeek * 4.345); // avg weeks per month
+          } else {
+            totalHours = app.hoursPerDay * 30; // default days per month
+          }
+          break;
+        case 'weekly':
+          totalHours = app.hoursPerWeek * 4.345; // avg weeks per month
+          break;
+        case 'monthly':
+          totalHours = app.hoursPerMonth;
+          break;
+        case 'custom':
+          totalHours = app.hoursPerDay * (app.daysPerMonth || 30);
+          break;
+        default:
+          // Legacy support for old format
+          if (app.daysPerMonth > 0) {
+            totalHours = app.hoursPerDay * app.daysPerMonth;
+          } else if (app.daysPerWeek > 0) {
+            totalHours = app.hoursPerDay * (app.daysPerWeek * 4.345);
+          } else {
+            totalHours = app.hoursPerDay * 30;
+          }
+      }
+      
+      return (app.watts / 1000) * totalHours;
+    }
+
+    function updateDisplay() {
+      updateStats();
+      updateApplianceList();
+    }
+
+    function updateStats() {
+      let totalKWh = 0;
+      let totalVariableCost = 0;
+      
+      appliances.forEach(app => {
+        const kWh = calculateKWh(app);
+        totalKWh += kWh;
+        totalVariableCost += kWh * settings.marginalRatePerKWh;
+      });
+      
+      const totalCost = totalVariableCost + settings.fixedMonthlyCost;
+      
+      document.getElementById('totalAppliances').textContent = appliances.length;
+      document.getElementById('totalKWhStat').textContent = `${totalKWh.toFixed(2)} kWh`;
+      document.getElementById('totalVariableCost').textContent = `${settings.currency}${totalVariableCost.toFixed(2)}`;
+      document.getElementById('totalCostStat').textContent = `${settings.currency}${totalCost.toFixed(2)}`;
+    }
+
+    function updateApplianceList() {
+      const container = document.getElementById('applianceList');
+      
+      if (appliances.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12z" clip-rule="evenodd"/>
+            </svg>
+            <p>No appliances added yet. Add your first appliance to get started!</p>
+          </div>
+        `;
+        return;
+      }
+      
+      let totalKWh = 0;
+      let totalVariableCost = 0;
+      
+      const rows = appliances.map((app, index) => {
+        const kWh = calculateKWh(app);
+        const cost = kWh * settings.marginalRatePerKWh;
+        totalKWh += kWh;
+        totalVariableCost += cost;
+        
+        const wattsDisplay = app.directKWh !== undefined ? 'Direct kWh' : `${app.watts}W`;
+        const usageDisplay = getUsageDisplay(app);
+        
+        return `
+          <tr>
+            <td><strong>${app.name}</strong></td>
+            <td>${wattsDisplay}</td>
+            <td>${usageDisplay}</td>
+            <td>${kWh.toFixed(2)} kWh</td>
+            <td>${settings.currency}${cost.toFixed(2)}</td>
+            <td>
+              <button class="delete-btn" onclick="removeAppliance(${index})" title="Remove appliance">
+                ✕
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+      const totalCost = totalVariableCost + settings.fixedMonthlyCost;
+      
+      container.innerHTML = `
+        <table class="appliance-table">
+          <thead>
+            <tr>
+              <th>Appliance</th>
+              <th>Power</th>
+              <th>Usage</th>
+              <th>Monthly kWh</th>
+              <th>Variable Cost</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="3"><strong>Subtotal</strong></td>
+              <td><strong>${totalKWh.toFixed(2)} kWh</strong></td>
+              <td><strong>${settings.currency}${totalVariableCost.toFixed(2)}</strong></td>
+              <td></td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="4"><strong>Fixed Monthly Cost</strong></td>
+              <td><strong>${settings.currency}${settings.fixedMonthlyCost.toFixed(2)}</strong></td>
+              <td></td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="4"><strong>Total Monthly Cost</strong></td>
+              <td><strong>${settings.currency}${totalCost.toFixed(2)}</strong></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+    }
+
+    function getUsageDisplay(app) {
+      if (app.directKWh !== undefined) return 'Monthly total';
+      
+      switch (app.usagePeriod) {
+        case 'daily':
+          if (app.daysPerWeek > 0) {
+            return `${app.hoursPerDay}h/day, ${app.daysPerWeek} days/week`;
+          }
+          return `${app.hoursPerDay}h/day`;
+        case 'weekly':
+          return `${app.hoursPerWeek}h/week`;
+        case 'monthly':
+          return `${app.hoursPerMonth}h/month`;
+        case 'custom':
+          return `${app.hoursPerDay}h/day, ${app.daysPerMonth || 30} days/month`;
+        default:
+          // Legacy support
+          if (app.daysPerMonth > 0) {
+            return `${app.hoursPerDay}h/day, ${app.daysPerMonth} days/month`;
+          } else if (app.daysPerWeek > 0) {
+            return `${app.hoursPerDay}h/day, ${app.daysPerWeek} days/week`;
+          }
+          return `${app.hoursPerDay}h/day`;
+      }
+    }
+
+    function updateSettings() {
+      settings.fixedMonthlyCost = parseFloat(document.getElementById('fixedCost').value) || 30.50;
+      settings.marginalRatePerKWh = parseFloat(document.getElementById('kwhRate').value) || 0.155;
+      settings.currency = document.getElementById('currency').value || '€';
+      
+      saveData();
+      updateDisplay();
+    }
+
+    function exportData() {
+      const data = {
+        appliances: appliances,
+        settings: settings,
+        exportDate: new Date().toISOString()
+      };
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `power-calculator-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAllData() {
+      if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+        appliances = [];
+        saveData();
+        updateDisplay();
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
